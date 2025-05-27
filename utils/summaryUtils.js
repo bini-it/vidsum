@@ -1,7 +1,7 @@
 import { CohereClientV2 } from 'cohere-ai';
 import { prepareSummaryPrompt } from './prompt.js';
 import JSON5 from 'json5';
-
+import JSON from 'json5';
 const client = new CohereClientV2({ token: process.env.CO_API_KEY });
 
 export const generateSummary = async (transcriptEntries) => {
