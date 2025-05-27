@@ -13,7 +13,9 @@ app.get('/', (req, res) => {
   return res.status(200).json('VidSummary-version-1');
 });
 app.use('/api/transcript', transcriptRoutes);
-
+app.get('/api/ping', (req, res) => {
+  res.send('pong');
+});
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
