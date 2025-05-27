@@ -1,7 +1,17 @@
+const secondsToHMS = (seconds) => {
+  const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+  const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+  const s = String(Math.floor(seconds % 60)).padStart(2, '0');
+  return `${h}:${m}:${s}`;
+};
 const prepareSummaryPrompt = (transcriptEntries) => {
   // Format the transcript with timestamps for context
   const formattedTranscript = transcriptEntries
-    .map((entry) => `[ ${entry.startTime} - ${entry.endTime}] ${entry.text}`)
+    .map((entry) => {
+      const start = secondsToHMS(entry.offset);
+      const end = secondsToHMS(entry.offset + entry.duration);
+      return `[${start} - ${end}] ${entry.text}`;
+    })
     .join(',');
 
   return `
@@ -18,7 +28,7 @@ const prepareSummaryPrompt = (transcriptEntries) => {
 
   3. **Notable Moments** (with timestamps):
      - Highlight 2-3 impactful segments
-     - Format as: "[HH:MM:SS] Description"
+     - Format as: {"startTime": "HH:MM:SS", "endTime": "HH:MM:SS", "description": "..."}
 
   4. **Conclusion**:
      - How the video wraps up
