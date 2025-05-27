@@ -8,6 +8,12 @@ const VideoSummarySchema = new mongoose.Schema(
       required: true,
     },
     videoUrl: { type: String, required: true },
+    channelTitle: {
+      type: String,
+    },
+    videoTitle: {
+      type: String,
+    },
     overview: { type: String, required: true },
     keyPoints: [{ type: String, required: true }],
     notableMoments: [
