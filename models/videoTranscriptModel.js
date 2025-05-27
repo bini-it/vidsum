@@ -40,6 +40,15 @@ const VideoTranscriptSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    videoTitle: {
+      type: String,
+    },
+    channelTitle: {
+      type: String,
+    },
+   thumbnail: {
+      type: String,
+    },
     entries: [TranscriptEntrySchema],
   },
   { timestamps: true }
