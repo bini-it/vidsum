@@ -40,9 +40,40 @@ const validateProcessedTranscript = (processedTranscript) => {
   }
 };
 
+const getVideoDetails = async (videoUrl) => {
+  const videoId = extractVideoId(videoUrl);
+
+  const res = await fetch(
+    `${process.env.API_URL}?part=snippet&id=${videoId}&key=${process.env.API_KEY}`
+  );
+  const data = await res.json();
+  // console.log('videoData>>>', data);
+  if (data.items && data.items.length > 0) {
+    const snippet = data.items[0].snippet;
+    return {
+      title: snippet.title,
+      thumbnail:
+        snippet.thumbnails?.standard?.url ||
+        snippet.thumbnails?.high?.url ||
+        snippet.thumbnails?.default?.url ||
+        '',
+      channelTitle: snippet.channelTitle,
+    };
+  } else {
+    throw new Error('Video not found or API limit reached');
+  }
+};
+function extractVideoId(url) {
+  const regex =
+    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
+
 export {
   attemptApiFallback,
   attemptFinalFallback,
   validateProcessedTranscript,
   attemptYoutubeScrape,
+  getVideoDetails,
 };
