@@ -5,6 +5,7 @@ import {
   attemptApiFallback,
   attemptFinalFallback,
   attemptYoutubeScrape,
+  getVideoDetails,
   validateProcessedTranscript,
 } from '../utils/youtubeService.js';
 import {
@@ -25,6 +26,24 @@ const getAllVideoTranscripts = async (req, res) => {
     return res.status(500).json({
       success: false,
       error: 'Failed to fetch transcripts',
+      type: 'SERVER_ERROR',
+    });
+  }
+};
+
+const getAllVideoSummaries = async (req, res) => {
+  try {
+    const videoSummaries = await VideoSummary.find().lean();
+    return res.status(200).json({
+      success: true,
+      count: videoSummaries.length,
+      data: videoSummaries,
+    });
+  } catch (error) {
+    console.error('Get All summaries Error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch summaries',
       type: 'SERVER_ERROR',
     });
   }
@@ -53,8 +72,15 @@ const getTranscriptByVideoUrl = async (req, res) => {
       });
     }
     let transcript;
+    let title = '';
+    let thumbnail = '';
+    let channelTitle = '';
     try {
       // 1. Attempt 1: Scraping Library
+      const videoDetails = await getVideoDetails(videoUrl);
+      title = videoDetails.title;
+      thumbnail = videoDetails.thumbnail;
+      channelTitle = videoDetails.channelTitle;
 
       transcript = await attemptYoutubeScrape(videoUrl);
     } catch (firstAttemptError) {
@@ -69,7 +95,6 @@ const getTranscriptByVideoUrl = async (req, res) => {
           secondAttemptError.message
         );
         transcript = await attemptFinalFallback(videoUrl);
-
       }
     }
     const processedTranscript = processTranscriptData(transcript);
@@ -78,8 +103,10 @@ const getTranscriptByVideoUrl = async (req, res) => {
     const newTranscript = await VideoTranscript.create({
       videoUrl,
       entries: processedTranscript,
+      videoTitle: title,
+      thumbnail: thumbnail,
+      channelTitle: channelTitle,
     });
-
     await newTranscript.save();
 
     return res.status(200).json({
@@ -124,9 +151,7 @@ const summarizeTranscript = async (req, res) => {
         summary: existingSummary,
       });
     }
-    // Generate summary
     const { success, summary } = await generateSummary(transcript.entries);
-    // console.log('summary>>>', summary);
 
     if (!success) {
       throw new Error('Failed to generate summary');
@@ -134,6 +159,8 @@ const summarizeTranscript = async (req, res) => {
     const newSummary = new VideoSummary({
       videoTranscriptId: transcript._id,
       videoUrl: transcript.videoUrl,
+      videoTitle: transcript.videoTitle,
+      channelTitle: transcript.channelTitle,
       ...summary,
     });
 
@@ -162,4 +189,9 @@ const summarizeTranscript = async (req, res) => {
   }
 };
 
-export { getTranscriptByVideoUrl, summarizeTranscript, getAllVideoTranscripts };
+export {
+  getTranscriptByVideoUrl,
+  summarizeTranscript,
+  getAllVideoTranscripts,
+  getAllVideoSummaries,
+};
