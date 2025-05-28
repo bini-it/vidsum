@@ -43,10 +43,19 @@ const VideoTranscriptSchema = new mongoose.Schema(
     videoTitle: {
       type: String,
     },
+    videoId: {
+      type: String,
+    },
     channelTitle: {
       type: String,
     },
-   thumbnail: {
+    thumbnail: {
+      type: String,
+    },
+    videoLikeCount: {
+      type: String,
+    },
+    videoViewCount: {
       type: String,
     },
     entries: [TranscriptEntrySchema],
