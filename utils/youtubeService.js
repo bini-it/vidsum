@@ -44,12 +44,14 @@ const getVideoDetails = async (videoUrl) => {
   const videoId = extractVideoId(videoUrl);
 
   const res = await fetch(
-    `${process.env.API_URL}?part=snippet&id=${videoId}&key=${process.env.API_KEY}`
+    `${process.env.API_URL}?part=snippet,statistics&id=${videoId}&key=${process.env.API_KEY}`
   );
   const data = await res.json();
-  // console.log('videoData>>>', data);
+  // console.log('videoDataItemsStats>>>', data.items[0].statistics);
+  // console.log('videoDataItemsSnipets>>>', data.items[0].snippet);
   if (data.items && data.items.length > 0) {
     const snippet = data.items[0].snippet;
+    const statistics = data.items[0].statistics;
     return {
       title: snippet.title,
       thumbnail:
@@ -58,6 +60,9 @@ const getVideoDetails = async (videoUrl) => {
         snippet.thumbnails?.default?.url ||
         '',
       channelTitle: snippet.channelTitle,
+      likeCount: statistics.likeCount || '',
+      viewCount: statistics.viewCount || '',
+      videoId,
     };
   } else {
     throw new Error('Video not found or API limit reached');
