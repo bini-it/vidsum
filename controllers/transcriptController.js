@@ -62,7 +62,9 @@ const getTranscriptByVideoUrl = async (req, res) => {
   }
 
   try {
-    const existingTranscript = await VideoTranscript.findOne({ videoUrl });
+    const existingTranscript = await VideoTranscript.findOne({
+      videoUrl,
+    });
     // console.log('existingTranscript: >>> ', existingTranscript);
     if (existingTranscript) {
       return res.status(200).json({
@@ -75,12 +77,19 @@ const getTranscriptByVideoUrl = async (req, res) => {
     let title = '';
     let thumbnail = '';
     let channelTitle = '';
+    let videoId = '';
+    let viewCount = '';
+    let likeCount = '';
+    // let likeCount = '';
     try {
       // 1. Attempt 1: Scraping Library
       const videoDetails = await getVideoDetails(videoUrl);
       title = videoDetails.title;
       thumbnail = videoDetails.thumbnail;
       channelTitle = videoDetails.channelTitle;
+      videoId = videoDetails.videoId;
+      viewCount = videoDetails.viewCount;
+      likeCount = videoDetails.likeCount;
 
       transcript = await attemptYoutubeScrape(videoUrl);
     } catch (firstAttemptError) {
@@ -106,6 +115,9 @@ const getTranscriptByVideoUrl = async (req, res) => {
       videoTitle: title,
       thumbnail: thumbnail,
       channelTitle: channelTitle,
+      videoId,
+      videoLikeCount: likeCount,
+      videoViewCount: viewCount,
     });
     await newTranscript.save();
 
@@ -151,7 +163,10 @@ const summarizeTranscript = async (req, res) => {
         summary: existingSummary,
       });
     }
-    const { success, summary } = await generateSummary(transcript.entries);
+    const { success, summary } = await generateSummary(
+      transcript.entries,
+      transcript.videoId
+    );
 
     if (!success) {
       throw new Error('Failed to generate summary');
@@ -159,6 +174,7 @@ const summarizeTranscript = async (req, res) => {
     const newSummary = new VideoSummary({
       videoTranscriptId: transcript._id,
       videoUrl: transcript.videoUrl,
+      videoId: transcript.videoId,
       videoTitle: transcript.videoTitle,
       channelTitle: transcript.channelTitle,
       ...summary,
