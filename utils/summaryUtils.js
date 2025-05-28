@@ -4,7 +4,7 @@ import JSON5 from 'json5';
 import JSON from 'json5';
 const client = new CohereClientV2({ token: process.env.CO_API_KEY });
 
-export const generateSummary = async (transcriptEntries) => {
+export const generateSummary = async (transcriptEntries, videoId) => {
   const prompt = prepareSummaryPrompt(transcriptEntries);
   // console.log('prompt>>', prompt);
 
@@ -24,6 +24,13 @@ export const generateSummary = async (transcriptEntries) => {
     if (!content) return { success: false, summary: null };
     const parsed = cleanAndParseJson(content);
     if (!isValidSummary(parsed)) return { success: false, summary: null };
+    parsed.notableMoments = parsed.notableMoments.map((moment) => {
+      const seconds = timeStringToSeconds(moment.startTime);
+      return {
+        ...moment,
+        url: `https://www.youtube.com/watch?v=${videoId}&t=${seconds}s`,
+      };
+    });
     return { success: true, summary: parsed };
     s;
   } catch (error) {
@@ -71,6 +78,16 @@ function cleanAndParseJson(input) {
       console.log(error);
       throw new Error(`Failed to parse JSON: ${error.message}`);
     }
+  }
+}
+function timeStringToSeconds(timeString) {
+  const parts = timeString.split(':').map(Number);
+  if (parts.length === 3) {
+    return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  } else if (parts.length === 2) {
+    return parts[0] * 60 + parts[1];
+  } else {
+    return Number(parts[0]);
   }
 }
 export default generateSummary;
