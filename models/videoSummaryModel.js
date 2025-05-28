@@ -14,6 +14,9 @@ const VideoSummarySchema = new mongoose.Schema(
     videoTitle: {
       type: String,
     },
+    videoId: {
+      type: String,
+    },
     overview: { type: String, required: true },
     keyPoints: [{ type: String, required: true }],
     notableMoments: [
@@ -21,6 +24,7 @@ const VideoSummarySchema = new mongoose.Schema(
         startTime: { type: String, required: true },
         endTime: { type: String, required: true },
         description: { type: String, required: true },
+        url: { type: String },
       },
     ],
     conclusion: { type: String, required: true },
